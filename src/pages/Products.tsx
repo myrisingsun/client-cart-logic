@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Product {
   id: number;
@@ -9,14 +16,16 @@ interface Product {
   quantity: number;
 }
 
-const initialProducts: Product[] = [
-  { id: 1, name: "Premium Widget", price: 99.99, quantity: 0 },
-  { id: 2, name: "Basic Gadget", price: 49.99, quantity: 0 },
-  { id: 3, name: "Deluxe Package", price: 199.99, quantity: 0 },
+const availableProducts = [
+  { id: 1, name: "Premium Widget", price: 99.99 },
+  { id: 2, name: "Basic Gadget", price: 49.99 },
+  { id: 3, name: "Deluxe Package", price: 199.99 },
+  { id: 4, name: "Smart Device", price: 149.99 },
+  { id: 5, name: "Pro Tool Kit", price: 299.99 },
 ];
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const { toast } = useToast();
 
   const updateQuantity = (id: number, newQuantity: number) => {
@@ -45,10 +54,52 @@ const Products = () => {
     }
   };
 
+  const handleAddProduct = (productId: string) => {
+    const selectedProduct = availableProducts.find(p => p.id === Number(productId));
+    if (!selectedProduct) return;
+    
+    if (products.some(p => p.id === selectedProduct.id)) {
+      toast({
+        title: "Product already added",
+        description: "This product is already in your cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProducts([...products, { ...selectedProduct, quantity: 0 }]);
+    toast({
+      title: "Product Added",
+      description: `${selectedProduct.name} has been added to your selection`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-secondary p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
         <h1 className="text-2xl font-bold mb-6 text-gray-800">Product Selection</h1>
+        
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">Add New Product</h2>
+          <div className="flex gap-4">
+            <Select onValueChange={handleAddProduct}>
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Select a product to add" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableProducts.map((product) => (
+                  <SelectItem 
+                    key={product.id} 
+                    value={product.id.toString()}
+                    disabled={products.some(p => p.id === product.id)}
+                  >
+                    {product.name} - ${product.price}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
